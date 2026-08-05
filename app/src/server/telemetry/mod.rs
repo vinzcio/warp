@@ -242,6 +242,10 @@ impl TelemetryApi {
         settings_snapshot: PrivacySettingsSnapshot,
     ) -> impl Future<Output = Result<()>> + '_ {
         let work = async move {
+            // privacy-zdr: telemetry is removed — never send to Rudderstack / Warp.
+            if warp_core::privacy_zdr::telemetry_removed() {
+                return Result::Ok(());
+            }
             if settings_snapshot.should_disable_telemetry() {
                 log::info!("Not sending telemetry event because telemetry is disabled.");
                 return Result::Ok(());

@@ -1,62 +1,59 @@
-# privacy-zdr — private Warp terminal (sidebar, no cloud agents)
+# Forge (privacy-zdr)
 
-**Goal:** Warp’s **client UX** (blocks, tabs, **sidebar**, modern terminal) as *your* app — **without** Warp learning on your work and **without** relying on their hosted agents.
-
-This is **not** “use Ghostty instead.” The product target is Warp’s terminal UI, privatized.
+**Your own terminal product** based on the open-source Warp client.
 
 | | |
 |--|--|
+| Product name | **Forge** |
+| App ID | `dev.vinzcio.Forge` |
 | Fork | https://github.com/vinzcio/warp |
 | Branch | `privacy-zdr` |
 | Local | `/Users/vincent/src/warp-zdr` |
+| Binary | `warp-oss` (default-run) → runs as Forge |
 
-## What stays (why Warp)
+## Intent
 
-- Terminal UI: blocks, tabs, panes, command editor feel  
-- **Sidebar / agent-management-style chrome** (layout features in the client)  
-- Modern terminal features you wanted that plain Ghostty doesn’t ship the same way  
+Keep Warp’s **terminal UX** (blocks, tabs, panes, sidebar chrome).
 
-## What we turn off by default (privacy)
+**Remove** Warp’s cloud learning / hosted-agent product surface — not as soft defaults, but as **hard policy** that settings cannot turn back on.
 
-| Setting | Default here |
-|---------|----------------|
-| Telemetry / “Help improve Warp” | **off** |
-| Crash reporting | **off** |
-| Cloud conversation storage | **off** |
-| **All Warp AI** (`is_any_ai_enabled`) | **off** |
-| Active AI / suggestions / code suggestions / NL ghost text | **off** |
-| Voice AI | **off** |
-| “Use Agent” footer on commands | **off** |
-| Local→cloud handoff | **force disabled** |
+## What is removed (hard)
 
-You keep a nice terminal. You do **not** send console/work to Warp for model improvement or hosted agents by default.
+Policy module: `crates/warp_core/src/privacy_zdr.rs`  
+(`IS_PRIVACY_ZDR_FORK = true` always)
 
-## What forking cannot invent
+| Surface | How |
+|---------|-----|
+| Hosted Warp AI / agents | `is_any_ai_enabled()` always false; agent HTTP APIs error out; onboarding cannot enable |
+| Rudderstack telemetry | Macros are no-ops; collector never starts; send path returns immediately |
+| Crash reporting to Warp | Snapshot/setters forced off; OSS channel has no crash config |
+| Cloud conversation storage | Forced off; cannot re-enable |
 
-- Warp’s **server**, **Oz**, and **hosted agent harness** are **not** open source.  
-- We are **not** rebuilding their cloud agent. You said you don’t need it.  
-- “ZDR” here means: **our client doesn’t opt you into their collection/AI cloud** — not a legal ZDR contract with Warp Enterprise.
+These are **not** user toggles. UI settings that used to flip them are overridden.
 
-Optional later: run *your* CLI agents inside this terminal (Claude Code, Codex, etc.) with *your* keys. That’s separate from Warp’s cloud.
+## What remains
+
+- Local terminal, shells, blocks, tabs, splits  
+- Client sidebar / layout features that don’t require Warp cloud AI  
+- Running **your own** CLI tools inside the terminal (Claude Code, etc.) — those are separate processes, not Warp cloud agents  
+
+## What this is not
+
+- Not Warp Enterprise ZDR contracts  
+- Not an open-source rewrite of Oz / Warp server (those were never in this repo)  
+- Not deleting 500+ AI UI source files (that would brick the client graph); they are **dead** behind the hard kill  
 
 ## Build
 
-Disk was tight (~14 GB free). A full Rust build often needs **20–40 GB**. Free space, then:
+Needs free disk (~20–40 GB for Rust `target/`). Then:
 
 ```bash
 cd /Users/vincent/src/warp-zdr
 git checkout privacy-zdr
 ./script/bootstrap
-./script/run
-```
-
-## Remotes
-
-```text
-origin    https://github.com/vinzcio/warp.git
-upstream  https://github.com/warpdotdev/warp.git
+./script/run          # or: cargo run -p warp --bin warp-oss
 ```
 
 ## License
 
-AGPL v3 (client) + MIT (UI crates). Same as upstream.
+AGPL v3 (client) + MIT (UI crates), inherited from upstream Warp.

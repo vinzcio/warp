@@ -1519,6 +1519,11 @@ impl ServerApi {
         task_id: &AmbientAgentTaskId,
         request: SendAgentMessageRequest,
     ) -> anyhow::Result<SendAgentMessageResponse, anyhow::Error> {
+        if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            return Err(anyhow::anyhow!(
+                "Forge privacy-zdr: Warp cloud agents are removed from this build"
+            ));
+        }
         let response = self
             .post_public_api_response_for_task(task_id, "agent/messages", &request)
             .await?;
@@ -2062,6 +2067,11 @@ impl AIClient for ServerApi {
         parent_run_id: Option<String>,
         config: Option<AgentConfigSnapshot>,
     ) -> anyhow::Result<AmbientAgentTaskId, anyhow::Error> {
+        if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            return Err(anyhow::anyhow!(
+                "Forge privacy-zdr: Warp cloud agents are removed from this build"
+            ));
+        }
         if let Some(config) = &config {
             if let Some(worker_host) = &config.worker_host {
                 tracing::Span::current().record("config.worker_host", worker_host);
@@ -2574,6 +2584,11 @@ impl AIClient for ServerApi {
         &self,
         request: CreateAgentRequest,
     ) -> anyhow::Result<AgentResponse, anyhow::Error> {
+        if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            return Err(anyhow::anyhow!(
+                "Forge privacy-zdr: Warp cloud agents are removed from this build"
+            ));
+        }
         self.post_public_api("agent/identities", &request).await
     }
 
@@ -2581,6 +2596,11 @@ impl AIClient for ServerApi {
         &self,
         request: CreateAgentRequest,
     ) -> anyhow::Result<serde_json::Value, anyhow::Error> {
+        if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            return Err(anyhow::anyhow!(
+                "Forge privacy-zdr: Warp cloud agents are removed from this build"
+            ));
+        }
         self.post_public_api("agent/identities", &request).await
     }
 
@@ -2856,6 +2876,11 @@ impl AIClient for ServerApi {
         &self,
         request: SendAgentMessageRequest,
     ) -> anyhow::Result<SendAgentMessageResponse, anyhow::Error> {
+        if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            return Err(anyhow::anyhow!(
+                "Forge privacy-zdr: Warp cloud agents are removed from this build"
+            ));
+        }
         let response: SendAgentMessageResponse =
             self.post_public_api("agent/messages", &request).await?;
         Ok(response)

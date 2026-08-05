@@ -191,18 +191,31 @@ impl PrivacySettingsSnapshot {
     }
 
     pub fn is_telemetry_enabled(&self) -> bool {
+        if warp_core::privacy_zdr::telemetry_removed() {
+            return false;
+        }
         self.is_telemetry_enabled
     }
 
     pub fn is_crash_reporting_enabled(&self) -> bool {
+        if warp_core::privacy_zdr::crash_reporting_removed() {
+            return false;
+        }
         self.is_crash_reporting_enabled
     }
 
     pub fn is_telemetry_force_enabled(&self) -> bool {
+        if warp_core::privacy_zdr::telemetry_removed() {
+            return false;
+        }
         self.is_telemetry_force_enabled
     }
 
     pub fn should_disable_telemetry(&self) -> bool {
+        // privacy-zdr: telemetry is removed — always disable.
+        if warp_core::privacy_zdr::telemetry_removed() {
+            return true;
+        }
         // If a user has opted in to the agent mode analytics experiment, telemetry must be enabled.
         !self.is_telemetry_enabled
             && !self.is_telemetry_force_enabled
@@ -210,6 +223,11 @@ impl PrivacySettingsSnapshot {
     }
 
     pub fn should_collect_ai_ugc_telemetry(&self) -> bool {
+        if warp_core::privacy_zdr::telemetry_removed()
+            || warp_core::privacy_zdr::warp_cloud_ai_removed()
+        {
+            return false;
+        }
         self.should_collect_ai_ugc_telemetry
     }
 
@@ -481,6 +499,18 @@ impl PrivacySettings {
     /// The returned snapshot is not stateful, thus its values should be used shortly after the
     /// snapshot is returned.
     pub fn get_snapshot(&self, app: &AppContext) -> PrivacySettingsSnapshot {
+        if warp_core::privacy_zdr::telemetry_removed()
+            || warp_core::privacy_zdr::crash_reporting_removed()
+            || warp_core::privacy_zdr::cloud_conversation_storage_removed()
+        {
+            return PrivacySettingsSnapshot {
+                cloud_conversation_storage_enabled: Some(false),
+                is_telemetry_enabled: false,
+                is_crash_reporting_enabled: false,
+                is_telemetry_force_enabled: false,
+                should_collect_ai_ugc_telemetry: false,
+            };
+        }
         PrivacySettingsSnapshot {
             cloud_conversation_storage_enabled: (!self.is_cloud_conversation_storage_enabled)
                 .then_some(false),
@@ -504,6 +534,12 @@ impl PrivacySettings {
         new_value: bool,
         ctx: &mut ModelContext<PrivacySettings>,
     ) {
+        // privacy-zdr: crash reporting is removed.
+        let new_value = if warp_core::privacy_zdr::crash_reporting_removed() {
+            false
+        } else {
+            new_value
+        };
         let old_value = self.is_crash_reporting_enabled;
         if new_value != old_value {
             self.is_crash_reporting_enabled = new_value;
@@ -540,6 +576,12 @@ impl PrivacySettings {
         new_value: bool,
         ctx: &mut ModelContext<PrivacySettings>,
     ) {
+        // privacy-zdr: telemetry cannot be re-enabled.
+        let new_value = if warp_core::privacy_zdr::telemetry_removed() {
+            false
+        } else {
+            new_value
+        };
         let old_value = self.is_telemetry_enabled;
         if new_value != old_value {
             self.is_telemetry_enabled = new_value;
@@ -569,6 +611,12 @@ impl PrivacySettings {
         new_value: bool,
         ctx: &mut ModelContext<PrivacySettings>,
     ) {
+        // privacy-zdr: cloud conversation storage is removed.
+        let new_value = if warp_core::privacy_zdr::cloud_conversation_storage_removed() {
+            false
+        } else {
+            new_value
+        };
         let old_value = self.is_cloud_conversation_storage_enabled;
         if new_value == old_value {
             return;

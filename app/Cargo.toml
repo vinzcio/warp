@@ -1,7 +1,7 @@
 [package]
 authors = ["Warp Team <dev@warp.dev>"]
 default-run = "warp-oss"
-description = "The cloud-backed terminal for individuals and teams"
+description = "Forge — private terminal (privacy-zdr Warp client fork; cloud AI/telemetry removed)"
 edition = "2024"
 autobins = false
 name = "warp"

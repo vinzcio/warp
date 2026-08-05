@@ -63,6 +63,12 @@ pub fn apply_account_first_onboarding_settings(
         }
     }
 
+    // privacy-zdr: hosted Warp AI is removed — never persist enablement.
+    let is_ai_enabled = if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+        false
+    } else {
+        is_ai_enabled
+    };
     AISettings::handle(app).update(app, |settings, ctx| {
         report_if_error!(settings.is_any_ai_enabled.set_value(is_ai_enabled, ctx));
     });
@@ -124,6 +130,12 @@ pub fn apply_onboarding_settings(
     };
 
     if FeatureFlag::OpenWarpNewSettingsModes.is_enabled() {
+        // privacy-zdr: hosted Warp AI is removed — never persist enablement.
+        let is_ai_enabled = if warp_core::privacy_zdr::warp_cloud_ai_removed() {
+            false
+        } else {
+            is_ai_enabled
+        };
         AISettings::handle(app).update(app, |settings, ctx| {
             report_if_error!(settings.is_any_ai_enabled.set_value(is_ai_enabled, ctx));
         });

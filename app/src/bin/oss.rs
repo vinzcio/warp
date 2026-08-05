@@ -5,14 +5,21 @@
 use anyhow::Result;
 use warp_core::AppId;
 use warp_core::channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig};
+use warp_core::privacy_zdr;
 
-// Simple wrapper around warp::run() for Warp OSS builds.
+// Forge: privacy-zdr private terminal (Warp client UX, cloud AI/telemetry removed).
 fn main() -> Result<()> {
     let mut state = ChannelState::new(
         Channel::Oss,
         ChannelConfig {
-            app_id: AppId::new("dev", "warp", "WarpOss"),
-            logfile_name: "warp-oss.log".into(),
+            app_id: AppId::new(
+                privacy_zdr::QUALIFIER,
+                privacy_zdr::ORGANIZATION,
+                privacy_zdr::APPLICATION_NAME,
+            ),
+            logfile_name: privacy_zdr::LOGFILE_NAME.into(),
+            // Keep server configs for non-AI local features that still speak HTTP;
+            // AI/telemetry/crash paths are hard-killed in privacy_zdr.
             server_config: WarpServerConfig::production(),
             oz_config: OzConfig::production(),
             telemetry_config: None,
@@ -25,6 +32,13 @@ fn main() -> Result<()> {
         state = state.with_additional_features(warp_core::features::DEBUG_FLAGS);
     }
     ChannelState::set(state);
+
+    log::info!(
+        "{} privacy-zdr: cloud AI removed={}, telemetry removed={}",
+        privacy_zdr::PRODUCT_NAME,
+        privacy_zdr::warp_cloud_ai_removed(),
+        privacy_zdr::telemetry_removed(),
+    );
 
     warp::run()
 }
@@ -39,15 +53,15 @@ embed_plist::embed_info_plist_bytes!(r#"
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleDisplayName</key>
-    <string>WarpOss</string>
+    <string>Forge</string>
     <key>CFBundleExecutable</key>
     <string>warp-oss</string>
     <key>CFBundleIdentifier</key>
-    <string>dev.warp.WarpOss</string>
+    <string>dev.vinzcio.Forge</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>WarpOss</string>
+    <string>Forge</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -59,9 +73,9 @@ embed_plist::embed_info_plist_bytes!(r#"
     <key>UIDesignRequiresCompatibility</key>
     <true/>
     <key>CFBundleURLTypes</key>
-    <array><dict><key>CFBundleURLName</key><string>Custom App</string><key>CFBundleURLSchemes</key><array><string>warposs</string></array></dict></array>
+    <array><dict><key>CFBundleURLName</key><string>Forge</string><key>CFBundleURLSchemes</key><array><string>forge</string></array></dict></array>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2026, Denver Technologies, Inc</string>
+    <string>© Forge privacy-zdr fork (AGPL client). Based on Warp OSS.</string>
     </dict>
     </plist>
 "#.as_bytes());
