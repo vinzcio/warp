@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Download the thin Forge binary built on GitHub Actions.
+# No local Rust. No multi-GB target/. Just the finished package (~tens–low hundreds of MB).
+#
+# Usage:
+#   ./script/fetch-forge-binary              # latest successful run on privacy-zdr
+#   ./script/fetch-forge-binary --run 12345  # specific run id
+#   ./script/fetch-forge-binary --install    # also unpack into ~/Applications/Forge.app
+
+set -euo pipefail
+
+REPO="${FORGE_REPO:-vinzcio/warp}"
+BRANCH="${FORGE_BRANCH:-privacy-zdr}"
+WORKFLOW="${FORGE_WORKFLOW:-forge-thin-build.yml}"
+OUT_DIR="${FORGE_OUT_DIR:-$HOME/Applications}"
+RUN_ID=""
+INSTALL=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --run) RUN_ID="$2"; shift 2 ;;
+    --install) INSTALL=1; shift ;;
+    --out) OUT_DIR="$2"; shift 2 ;;
+    -h|--help)
+      sed -n '2,12p' "$0"
+      exit 0
+      ;;
+    *) echo "Unknown arg: $1" >&2; exit 1 ;;
+  esac
+done
+
+if ! command -v gh >/dev/null; then
+  echo "Need GitHub CLI (gh). Install: brew install gh" >&2
+  exit 1
+fi
+
+if [[ -z "$RUN_ID" ]]; then
+  echo "Looking for latest successful Forge thin build on $REPO@$BRANCH ..."
+  RUN_ID=$(gh run list \
+    --repo "$REPO" \
+    --workflow "$WORKFLOW" \
+    --branch "$BRANCH" \
+    --status success \
+    --limit 1 \
+    --json databaseId \
+    --jq '.[0].databaseId // empty')
+  if [[ -z "$RUN_ID" ]]; then
+    echo "No successful run yet. Trigger one:"
+    echo "  gh workflow run $WORKFLOW --repo $REPO --ref $BRANCH"
+    echo "Then watch:"
+    echo "  gh run watch --repo $REPO"
+    exit 1
+  fi
+fi
+
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+
+echo "Downloading artifact from run $RUN_ID ..."
+gh run download "$RUN_ID" \
+  --repo "$REPO" \
+  --name forge-macos-arm64 \
+  --dir "$TMP"
+
+ARCHIVE=$(find "$TMP" -name 'forge-macos-arm64.tar.gz' | head -1)
+if [[ -z "$ARCHIVE" ]]; then
+  echo "Artifact archive not found in download." >&2
+  find "$TMP" -type f >&2
+  exit 1
+fi
+
+echo "Archive size: $(du -h "$ARCHIVE" | awk '{print $1}')"
+mkdir -p "$OUT_DIR"
+tar xzf "$ARCHIVE" -C "$OUT_DIR"
+echo "Extracted to $OUT_DIR"
+ls -lh "$OUT_DIR/forge" "$OUT_DIR/Forge.app/Contents/MacOS/Forge" 2>/dev/null || ls -lh "$OUT_DIR"
+
+if [[ "$INSTALL" -eq 1 ]]; then
+  echo "Opening Forge (ad-hoc signed / unsigned — right-click → Open the first time if Gatekeeper nags)..."
+  open "$OUT_DIR/Forge.app" 2>/dev/null || "$OUT_DIR/forge" &
+fi
+
+echo "Done. Fat build stayed on GitHub; only the thin binary is on this machine."

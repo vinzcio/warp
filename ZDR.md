@@ -43,15 +43,34 @@ These are **not** user toggles. UI settings that used to flip them are overridde
 - Not an open-source rewrite of Oz / Warp server (those were never in this repo)  
 - Not deleting 500+ AI UI source files (that would brick the client graph); they are **dead** behind the hard kill  
 
-## Build
+## Build without the fat (recommended)
 
-Needs free disk (~20–40 GB for Rust `target/`). Then:
+**Don’t compile on this laptop.** GitHub Actions builds Forge; you only download the binary.
+
+```bash
+# 1) Kick a cloud build
+gh workflow run forge-thin-build.yml --repo vinzcio/warp --ref privacy-zdr
+
+# 2) Wait
+gh run watch --repo vinzcio/warp
+
+# 3) Pull only the thin package (not multi-GB target/)
+cd /Users/vincent/src/warp-zdr
+chmod +x ./script/fetch-forge-binary
+./script/fetch-forge-binary --install
+```
+
+- Workflow: `.github/workflows/forge-thin-build.yml`
+- Fetcher: `./script/fetch-forge-binary`
+
+### Local fat build (only if you must)
+
+Needs free disk for Rust `target/` (often 10GB+). Prefer the thin path above.
 
 ```bash
 cd /Users/vincent/src/warp-zdr
-git checkout privacy-zdr
 ./script/bootstrap
-./script/run          # or: cargo run -p warp --bin warp-oss
+./script/run
 ```
 
 ## License

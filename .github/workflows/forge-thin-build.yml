@@ -1,0 +1,121 @@
+# Forge thin build — compile on GitHub's runners, ship only the binary.
+# Your laptop never holds the multi-GB target/ tree.
+#
+# Trigger: Actions → "Forge thin build" → Run workflow
+# Or:      gh workflow run forge-thin-build.yml --ref privacy-zdr
+# Fetch:   ./script/fetch-forge-binary
+
+name: Forge thin build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [privacy-zdr]
+    paths:
+      - "app/**"
+      - "crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/forge-thin-build.yml"
+
+concurrency:
+  group: forge-thin-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  # Slim objects — we only need a runnable binary, not debuggable intermediates.
+  RUSTFLAGS: "-C debuginfo=0 --cfg=web_sys_unstable_apis"
+  CARGO_PROFILE_RELEASE_DEBUG: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+  CARGO_PROFILE_RELEASE_LTO: "false"
+
+jobs:
+  macos-arm64:
+    name: macOS aarch64 (M1/M2/M3/M4)
+    runs-on: macos-14
+    timeout-minutes: 180
+    steps:
+      - name: Free disk on runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          df -h
+
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Rust (toolchain file = minimal profile)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.92.0"
+          components: rustfmt
+
+      - name: Cache cargo registry + git (not target/)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+          key: forge-cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            forge-cargo-${{ runner.os }}-
+
+      - name: Install system deps (minimal)
+        run: |
+          brew install protobuf cmake pkgconf || true
+          # Metal shader toolchain — needed for GUI GPU path on some Xcode versions
+          xcodebuild -downloadComponent MetalToolchain || true
+          protoc --version || true
+          rustc --version
+          cargo --version
+          df -h
+
+      - name: Build Forge only (warp-oss binary)
+        run: |
+          # Only the product binary — not the whole workspace test matrix.
+          cargo build -p warp --bin warp-oss --release --locked
+          ls -lh target/release/warp-oss
+          # Strip local symbols; keep enough for crash stacks if needed later.
+          strip -x target/release/warp-oss || strip target/release/warp-oss || true
+          ls -lh target/release/warp-oss
+          file target/release/warp-oss
+          df -h
+
+      - name: Stage thin package
+        run: |
+          mkdir -p dist/Forge.app/Contents/MacOS dist/Forge.app/Contents/Resources
+          cp target/release/warp-oss dist/Forge.app/Contents/MacOS/Forge
+          cat > dist/Forge.app/Contents/Info.plist <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key><string>Forge</string>
+            <key>CFBundleIdentifier</key><string>dev.vinzcio.Forge</string>
+            <key>CFBundleName</key><string>Forge</string>
+            <key>CFBundleDisplayName</key><string>Forge</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleShortVersionString</key><string>0.1.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+            <key>LSMinimumSystemVersion</key><string>13.0</string>
+          </dict>
+          </plist>
+          PLIST
+          # Also ship bare binary for CLI fans
+          cp target/release/warp-oss dist/forge
+          chmod +x dist/forge dist/Forge.app/Contents/MacOS/Forge
+          (cd dist && tar czf forge-macos-arm64.tar.gz forge Forge.app)
+          ls -lh dist/
+
+      - name: Upload thin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-macos-arm64
+          path: dist/forge-macos-arm64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
