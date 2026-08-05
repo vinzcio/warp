@@ -515,5 +515,27 @@ fn enabled_features() -> HashSet<FeatureFlag> {
         FeatureFlag::TerminalLifecycleRecovery,
     ]);
 
+    // Forge / Hemisthia–Harken: strip onboarding, launch modals, agent surface flags that
+    // drive product bloat. Go straight to a quiet terminal.
+    if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
+        for flag in [
+            FeatureFlag::AgentOnboarding,
+            FeatureFlag::AccountFirstOnboarding,
+            FeatureFlag::OpenWarpNewSettingsModes,
+            FeatureFlag::OpenWarpLaunchModal,
+            FeatureFlag::Changelog,
+            FeatureFlag::OzChangelogUpdates,
+            FeatureFlag::HOAOnboardingFlow,
+            FeatureFlag::GlobalAIAnalyticsBanner,
+            FeatureFlag::GlobalAIAnalyticsCollection,
+            FeatureFlag::WarpifyFooter,
+            FeatureFlag::BillingAndUsagePageV2,
+        ] {
+            flags.remove(&flag);
+        }
+        // Skip anonymous Firebase login wall when possible.
+        flags.insert(FeatureFlag::SkipFirebaseAnonymousUser);
+    }
+
     flags
 }

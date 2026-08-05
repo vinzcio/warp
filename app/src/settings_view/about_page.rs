@@ -51,7 +51,11 @@ impl SettingsWidget for AboutPageWidget {
     type View = AboutPageView;
 
     fn search_terms(&self) -> &str {
-        "about warp version"
+        if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
+            "about forge version hemisthia harken"
+        } else {
+            "about warp version"
+        }
     }
 
     fn render(
@@ -63,7 +67,14 @@ impl SettingsWidget for AboutPageWidget {
         let theme = appearance.theme();
         let ui_builder = appearance.ui_builder();
 
-        let image_path = if theme.inferred_color_scheme() == ColorScheme::LightOnDark {
+        let image_path = if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
+            // Prefer Forge mark; fall back to Warp logo assets if mark missing at runtime.
+            if theme.inferred_color_scheme() == ColorScheme::LightOnDark {
+                "bundled/svg/forge-logo-light.svg"
+            } else {
+                "bundled/svg/forge-logo-dark.svg"
+            }
+        } else if theme.inferred_color_scheme() == ColorScheme::LightOnDark {
             "bundled/svg/warp-logo-with-light-title.svg"
         } else {
             "bundled/svg/warp-logo-with-dark-title.svg"
@@ -97,6 +108,16 @@ impl SettingsWidget for AboutPageWidget {
                     .finish(),
             ]);
 
+        let copyright = if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
+            format!(
+                "{} · {}",
+                warp_core::privacy_zdr::COPYRIGHT_LINE,
+                warp_core::privacy_zdr::TAGLINE
+            )
+        } else {
+            "Copyright 2026 Warp".to_string()
+        };
+
         Align::new(
             Flex::column()
                 .with_cross_axis_alignment(CrossAxisAlignment::Center)
@@ -115,7 +136,7 @@ impl SettingsWidget for AboutPageWidget {
                 .with_child(version_row.finish())
                 .with_child(
                     ui_builder
-                        .span("Copyright 2026 Warp")
+                        .span(copyright)
                         .build()
                         .with_margin_top(16.)
                         .finish(),

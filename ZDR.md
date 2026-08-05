@@ -13,9 +13,18 @@
 
 ## Intent
 
-Keep Warp’s **terminal UX** (blocks, tabs, panes, sidebar chrome).
+Keep Warp’s **terminal UX** (blocks, tabs, panes).
 
 **Remove** Warp’s cloud learning / hosted-agent product surface — not as soft defaults, but as **hard policy** that settings cannot turn back on.
+
+### Hemisthia / Harken
+
+| | |
+|--|--|
+| **Hemisthia** | Quiet depth — indigo–obsidian fields, half-lit geometry, soft silver mist. Prefer absence over chrome. |
+| **Harken** | Attentive warmth — a single amber/copper ember accent; serious but human. |
+
+**UI rules:** no agent/cloud/billing/teams/drive settings nav; no onboarding theatre; straight into the terminal.
 
 ## What is removed (hard)
 
@@ -28,6 +37,9 @@ Policy module: `crates/warp_core/src/privacy_zdr.rs`
 | Rudderstack telemetry | Macros are no-ops; collector never starts; send path returns immediately |
 | Crash reporting to Warp | Snapshot/setters forced off; OSS channel has no crash config |
 | Cloud conversation storage | Forced off; cannot re-enable |
+| Onboarding / login wall | Skipped — open terminal immediately |
+| Settings sidebar bloat | Slim nav: Appearance, Features, Keybindings, Privacy, About |
+| Branding | Forge mark + Hemisthia/Harken About copy + app icon |
 
 These are **not** user toggles. UI settings that used to flip them are overridden.
 

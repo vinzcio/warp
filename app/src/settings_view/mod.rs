@@ -1361,61 +1361,98 @@ impl SettingsView {
 
         // Build sidebar nav items. AI page is presented as an "Agents" umbrella
         // with subpages; the actual AI SettingsPage is hidden from direct sidebar listing.
-        let mut nav_items = vec![
-            SettingsNavItem::Page(SettingsSection::Account),
-            SettingsNavItem::Umbrella(SettingsUmbrella::new(
-                "Agents",
-                SettingsSection::ai_subpages().to_vec(),
-            )),
-            SettingsNavItem::Page(SettingsSection::BillingAndUsage),
-            SettingsNavItem::Umbrella(SettingsUmbrella::new(
-                "Code",
-                vec![
-                    SettingsSection::CodeIndexing,
-                    SettingsSection::EditorAndCodeReview,
-                ],
-            )),
-            SettingsNavItem::Umbrella(SettingsUmbrella::new(
-                "Cloud platform",
-                vec![
-                    SettingsSection::CloudEnvironments,
-                    SettingsSection::OzCloudAPIKeys,
-                ],
-            )),
-            SettingsNavItem::Page(SettingsSection::Teams),
-            SettingsNavItem::Page(SettingsSection::Appearance),
-            SettingsNavItem::Page(SettingsSection::Features),
-            SettingsNavItem::Page(SettingsSection::Keybindings),
-            SettingsNavItem::Page(SettingsSection::Warpify),
-            SettingsNavItem::Page(SettingsSection::Referrals),
-            SettingsNavItem::Page(SettingsSection::SharedBlocks),
-            SettingsNavItem::Page(SettingsSection::WarpDrive),
-            SettingsNavItem::Page(SettingsSection::Privacy),
-            SettingsNavItem::Page(SettingsSection::About),
-        ];
+        //
+        // Forge (privacy-zdr / Hemisthia–Harken): strip cloud, billing, agents, teams,
+        // drive, referrals, and other Warp product surfaces. Keep only craft tools.
+        let mut nav_items = if warp_core::privacy_zdr::slim_settings_nav() {
+            vec![
+                SettingsNavItem::Page(SettingsSection::Appearance),
+                SettingsNavItem::Page(SettingsSection::Features),
+                SettingsNavItem::Page(SettingsSection::Keybindings),
+                SettingsNavItem::Page(SettingsSection::Privacy),
+                SettingsNavItem::Page(SettingsSection::About),
+            ]
+        } else {
+            let mut items = vec![
+                SettingsNavItem::Page(SettingsSection::Account),
+                SettingsNavItem::Umbrella(SettingsUmbrella::new(
+                    "Agents",
+                    SettingsSection::ai_subpages().to_vec(),
+                )),
+                SettingsNavItem::Page(SettingsSection::BillingAndUsage),
+                SettingsNavItem::Umbrella(SettingsUmbrella::new(
+                    "Code",
+                    vec![
+                        SettingsSection::CodeIndexing,
+                        SettingsSection::EditorAndCodeReview,
+                    ],
+                )),
+                SettingsNavItem::Umbrella(SettingsUmbrella::new(
+                    "Cloud platform",
+                    vec![
+                        SettingsSection::CloudEnvironments,
+                        SettingsSection::OzCloudAPIKeys,
+                    ],
+                )),
+                SettingsNavItem::Page(SettingsSection::Teams),
+                SettingsNavItem::Page(SettingsSection::Appearance),
+                SettingsNavItem::Page(SettingsSection::Features),
+                SettingsNavItem::Page(SettingsSection::Keybindings),
+                SettingsNavItem::Page(SettingsSection::Warpify),
+                SettingsNavItem::Page(SettingsSection::Referrals),
+                SettingsNavItem::Page(SettingsSection::SharedBlocks),
+                SettingsNavItem::Page(SettingsSection::WarpDrive),
+                SettingsNavItem::Page(SettingsSection::Privacy),
+                SettingsNavItem::Page(SettingsSection::About),
+            ];
 
-        if FeatureFlag::WarpControlCli.is_enabled() {
-            let shared_blocks_index = nav_items
-                .iter()
-                .position(|item| {
-                    matches!(item, SettingsNavItem::Page(SettingsSection::SharedBlocks))
-                })
-                .unwrap_or(nav_items.len());
-            nav_items.insert(
-                shared_blocks_index,
-                SettingsNavItem::Page(SettingsSection::Scripting),
-            );
-        }
+            if FeatureFlag::WarpControlCli.is_enabled() {
+                let shared_blocks_index = items
+                    .iter()
+                    .position(|item| {
+                        matches!(item, SettingsNavItem::Page(SettingsSection::SharedBlocks))
+                    })
+                    .unwrap_or(items.len());
+                items.insert(
+                    shared_blocks_index,
+                    SettingsNavItem::Page(SettingsSection::Scripting),
+                );
+            }
+            items
+        };
 
         // Resolve the initial page: map internal backing-page sections to their default subpage.
+        let default_section = if warp_core::privacy_zdr::slim_settings_nav() {
+            SettingsSection::Appearance
+        } else {
+            SettingsSection::default()
+        };
         let initial_page = match page {
-            Some(SettingsSection::AI) => SettingsSection::WarpAgent,
-            Some(SettingsSection::Code) => SettingsSection::CodeIndexing,
+            Some(SettingsSection::AI) if !warp_core::privacy_zdr::slim_settings_nav() => {
+                SettingsSection::WarpAgent
+            }
+            Some(SettingsSection::Code) if !warp_core::privacy_zdr::slim_settings_nav() => {
+                SettingsSection::CodeIndexing
+            }
             Some(SettingsSection::Scripting) if !FeatureFlag::WarpControlCli.is_enabled() => {
-                SettingsSection::Account
+                default_section
+            }
+            // Hidden sections redirect to Appearance in the slim Forge nav.
+            Some(section)
+                if warp_core::privacy_zdr::slim_settings_nav()
+                    && !matches!(
+                        section,
+                        SettingsSection::Appearance
+                            | SettingsSection::Features
+                            | SettingsSection::Keybindings
+                            | SettingsSection::Privacy
+                            | SettingsSection::About
+                    ) =>
+            {
+                SettingsSection::Appearance
             }
             Some(section) if section.is_subpage() => section,
-            other => other.unwrap_or_default(),
+            other => other.unwrap_or(default_section),
         };
 
         // Auto-expand the umbrella if the initial page is one of its subpages.

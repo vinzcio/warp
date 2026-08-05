@@ -1905,6 +1905,10 @@ impl RootView {
 
         let auth_onboarding_state = if auth_state.is_logged_in() {
             AuthOnboardingState::Terminal(workspace_args.create_workspace(ctx))
+        } else if warp_core::privacy_zdr::skip_onboarding() {
+            // Forge / Hemisthia–Harken: no onboarding theatre, no login wall — straight to terminal.
+            mark_local_onboarding_completed(ctx);
+            AuthOnboardingState::Terminal(workspace_args.create_workspace(ctx))
         } else {
             cfg_if! {
                 if #[cfg(target_family = "wasm")] {
