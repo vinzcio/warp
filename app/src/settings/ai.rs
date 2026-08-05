@@ -1154,11 +1154,13 @@ impl settings_value::SettingsValue for ToolbarCommandMap {
     }
 }
 
+// privacy-zdr fork: Warp UI/terminal stays; hosted Warp AI is off by default.
+// See ZDR.md — goal is a private terminal with sidebar, not cloud agents.
 define_settings_group!(AISettings, settings: [
     // If `false`, all AI features are disabled.
     is_any_ai_enabled: IsAnyAIEnabled {
         type: bool,
-        default: true,
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         surface: settings::SettingSurfaces::GUI,
@@ -1170,7 +1172,7 @@ define_settings_group!(AISettings, settings: [
     // `is_active_ai_enabled()` getter.
     is_active_ai_enabled_internal: IsActiveAIEnabled {
         type: bool,
-        default: true,
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         surface: settings::SettingSurfaces::GUI,
@@ -1219,7 +1221,7 @@ define_settings_group!(AISettings, settings: [
     // -- use the `is_intelligent_autosuggestions_enabled()` getter.
     intelligent_autosuggestions_enabled_internal: IntelligentAutosuggestionsEnabled {
         type: bool,
-        default: true, // TODO(roland): revisit this when launched to stable
+        default: false, // privacy-zdr: no cloud AI suggestions
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1234,7 +1236,7 @@ define_settings_group!(AISettings, settings: [
     // breaking existing user settings.
     prompt_suggestions_enabled_internal: AgentModeQuerySuggestionsEnabled {
         type: bool,
-        default: true, // TODO(advait): revisit this when launched to stable
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1247,7 +1249,7 @@ define_settings_group!(AISettings, settings: [
     // enablement -- use the `is_code_suggestions_enabled()` getter.
     code_suggestions_enabled_internal: CodeSuggestionsEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1260,7 +1262,7 @@ define_settings_group!(AISettings, settings: [
     // This feature refers to ghosted text for AI input queries.
     natural_language_autosuggestions_enabled_internal: NaturalLanguageAutosuggestionsEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1274,7 +1276,7 @@ define_settings_group!(AISettings, settings: [
     // This feature refers to the auto title generation when the user opens the shared block dialog.
     shared_block_title_generation_enabled_internal: SharedBlockTitleGenerationEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1286,7 +1288,7 @@ define_settings_group!(AISettings, settings: [
     // enablement -- use the `is_git_operations_autogen_enabled()` getter.
     git_operations_autogen_enabled_internal: GitOperationsAutogenEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1298,7 +1300,7 @@ define_settings_group!(AISettings, settings: [
     // enablement -- use the `is_rule_suggestions_enabled()` getter.
     rule_suggestions_enabled_internal: RuleSuggestionsEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1311,7 +1313,7 @@ define_settings_group!(AISettings, settings: [
     // `is_voice_input_enabled()` getter.
     voice_input_enabled_internal: VoiceInputEnabled {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr
         supported_platforms: SupportedPlatforms::DESKTOP,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -1797,7 +1799,7 @@ define_settings_group!(AISettings, settings: [
 
     should_render_use_agent_footer_for_user_commands: ShouldRenderUseAgentToolbarForUserCommands {
         type: bool,
-        default: true,
+        default: false, // privacy-zdr: no hosted-agent upsell in the terminal
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
@@ -2070,7 +2072,7 @@ define_settings_group!(AISettings, settings: [
 
     should_force_disable_cloud_handoff: ShouldForceDisableCloudHandoff {
         type: bool,
-        default: false,
+        default: true, // privacy-zdr: never hand sessions off to Warp cloud
         supported_platforms: SupportedPlatforms::DESKTOP,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,

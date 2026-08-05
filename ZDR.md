@@ -1,90 +1,62 @@
-# privacy-zdr fork
+# privacy-zdr — private Warp terminal (sidebar, no cloud agents)
 
-This is a personal fork of the open-source **Warp client** with privacy defaults flipped off.
+**Goal:** Warp’s **client UX** (blocks, tabs, **sidebar**, modern terminal) as *your* app — **without** Warp learning on your work and **without** relying on their hosted agents.
 
-Fork: https://github.com/vinzcio/warp  
-Branch: `privacy-zdr`  
-Local path: `/Users/vincent/src/warp-zdr`
+This is **not** “use Ghostty instead.” The product target is Warp’s terminal UI, privatized.
 
-## What you get
+| | |
+|--|--|
+| Fork | https://github.com/vinzcio/warp |
+| Branch | `privacy-zdr` |
+| Local | `/Users/vincent/src/warp-zdr` |
 
-| Change | Effect |
-|--------|--------|
-| `privacy.telemetry_enabled` default → **false** | No “help improve Warp” / console-interaction telemetry by default |
-| `privacy.crash_reporting_enabled` default → **false** | No crash dumps to Warp by default |
-| `agents.cloud_conversation_storage_enabled` default → **false** | Agent conversations not stored in Warp cloud by default |
+## What stays (why Warp)
 
-## What this is **not**
+- Terminal UI: blocks, tabs, panes, command editor feel  
+- **Sidebar / agent-management-style chrome** (layout features in the client)  
+- Modern terminal features you wanted that plain Ghostty doesn’t ship the same way  
 
-**Forking the client does not give you Warp Enterprise ZDR**, and it does **not** open-source:
+## What we turn off by default (privacy)
 
-- Warp’s **server** / hosted AI agent harness  
-- **Oz** orchestration  
-- **Warp Drive** backend  
-- Hosted auth / billing  
+| Setting | Default here |
+|---------|----------------|
+| Telemetry / “Help improve Warp” | **off** |
+| Crash reporting | **off** |
+| Cloud conversation storage | **off** |
+| **All Warp AI** (`is_any_ai_enabled`) | **off** |
+| Active AI / suggestions / code suggestions / NL ghost text | **off** |
+| Voice AI | **off** |
+| “Use Agent” footer on commands | **off** |
+| Local→cloud handoff | **force disabled** |
 
-From upstream FAQ: the built-in agent runs **server-side** and is **not** in this repo.  
-ACP / bring-your-own agent is on their roadmap, not fully here yet.
+You keep a nice terminal. You do **not** send console/work to Warp for model improvement or hosted agents by default.
 
-So:
+## What forking cannot invent
 
-- **Real ZDR for models** = you use **your own** LLM API keys (or local models) under a provider policy that is no-train / ZDR, **or** you stay offline.
-- **This fork** = client defaults that stop optional Warp telemetry / cloud conversation storage, so the terminal itself is not “learning on your work” via Warp improvement pipelines.
+- Warp’s **server**, **Oz**, and **hosted agent harness** are **not** open source.  
+- We are **not** rebuilding their cloud agent. You said you don’t need it.  
+- “ZDR” here means: **our client doesn’t opt you into their collection/AI cloud** — not a legal ZDR contract with Warp Enterprise.
 
-If you still click Warp Agent / hosted models while logged into Warp, prompts still go to Warp’s cloud — that path is proprietary and not fixed by this patch set.
+Optional later: run *your* CLI agents inside this terminal (Claude Code, Codex, etc.) with *your* keys. That’s separate from Warp’s cloud.
 
-## Recommended agentic setup (actual ZDR)
+## Build
 
-1. Build/run this client with collection defaults off (or use stock Ghostty).
-2. Run agents **in the terminal** with your keys:
-   - Claude Code / Codex / Gemini CLI / Grok, etc.
-3. Prefer API plans that contractually **do not train** and, if required, **ZDR** (enterprise/API terms — not free consumer chat).
-4. Optional: secret redaction on in Settings → Privacy; keep AI “ambient” features off.
-
-## Build (when you have disk)
-
-You currently have limited free space (~14 GB). A full Rust `target/` build often needs **20–40 GB**. Free disk first, then:
+Disk was tight (~14 GB free). A full Rust build often needs **20–40 GB**. Free space, then:
 
 ```bash
 cd /Users/vincent/src/warp-zdr
-./script/bootstrap   # installs Rust toolchain + deps
-./script/run         # build + launch
-```
-
-Or:
-
-```bash
-./script/install_rust
-cargo run -p warp   # package name may vary; see Cargo.toml / AGENTS.md
-```
-
-## User settings override (any build)
-
-If you already have Warp settings, force offline-friendly prefs in your Warp settings TOML (paths vary by platform; macOS often under `~/Library/Application Support/dev.warp.Warp-Stable/`):
-
-```toml
-[privacy]
-telemetry_enabled = false
-crash_reporting_enabled = false
-
-[agents]
-cloud_conversation_storage_enabled = false
+git checkout privacy-zdr
+./script/bootstrap
+./script/run
 ```
 
 ## Remotes
 
 ```text
-origin    https://github.com/vinzcio/warp.git   (your fork)
+origin    https://github.com/vinzcio/warp.git
 upstream  https://github.com/warpdotdev/warp.git
-```
-
-Sync:
-
-```bash
-git fetch upstream
-git merge upstream/master   # or rebase
 ```
 
 ## License
 
-Upstream is **AGPL v3** (client) + **MIT** (UI crates). This fork inherits that. Distributing a modified client publicly triggers AGPL source obligations.
+AGPL v3 (client) + MIT (UI crates). Same as upstream.
