@@ -33,6 +33,8 @@
 
 [Warp](https://www.warp.dev) is an agentic development environment, born out of the terminal. Use Warp's built-in coding agent, or bring your own CLI agent (Claude Code, Codex, Gemini CLI, and others).
 
+> **This fork (`vinzcio/warp`, branch `privacy-zdr`)** defaults telemetry, crash reporting, and cloud conversation storage **off**. See **[ZDR.md](ZDR.md)** for scope, limits (hosted agent is not open source), and a real BYO-agent ZDR workflow.
+
 ## Installation
 
 You can [download Warp](https://www.warp.dev/download) and [read our docs](https://docs.warp.dev/) for platform-specific instructions.

@@ -87,10 +87,13 @@ impl PartialEq for CustomSecretRegex {
 
 impl settings_value::SettingsValue for CustomSecretRegex {}
 
+// privacy-zdr fork: defaults are OFF so fresh installs do not ship console
+// interactions / crash dumps / cloud conversation storage to Warp.
+// See ZDR.md for what this does and does not cover.
 define_settings_group!(WarpDrivePrivacySettings, settings: [
     is_telemetry_enabled: IsTelemetryEnabled {
         type: bool,
-        default: true,
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         surface: settings::SettingSurfaces::ALL,
@@ -101,7 +104,7 @@ define_settings_group!(WarpDrivePrivacySettings, settings: [
     },
     is_crash_reporting_enabled: IsCrashReportingEnabled {
         type: bool,
-        default: true,
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         surface: settings::SettingSurfaces::ALL,
@@ -112,7 +115,7 @@ define_settings_group!(WarpDrivePrivacySettings, settings: [
     },
     is_cloud_conversation_storage_enabled: IsCloudConversationStorageEnabled {
         type: bool,
-        default: true,
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::No),
         surface: settings::SettingSurfaces::ALL,
@@ -369,9 +372,10 @@ impl PrivacySettings {
 
     pub fn refresh_to_default(&mut self) {
         // TODO(zach): this seems incorrect - should we also update the values on disk?
-        self.is_telemetry_enabled = true;
-        self.is_crash_reporting_enabled = true;
-        self.is_cloud_conversation_storage_enabled = true;
+        // privacy-zdr fork: match compile-time defaults (all collection OFF).
+        self.is_telemetry_enabled = false;
+        self.is_crash_reporting_enabled = false;
+        self.is_cloud_conversation_storage_enabled = false;
         self.is_telemetry_force_enabled = false;
         self.is_enterprise_secret_redaction_enabled = false;
     }
