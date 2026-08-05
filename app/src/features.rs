@@ -515,8 +515,7 @@ fn enabled_features() -> HashSet<FeatureFlag> {
         FeatureFlag::TerminalLifecycleRecovery,
     ]);
 
-    // Forge / Hemisthia–Harken: strip onboarding, launch modals, agent surface flags that
-    // drive product bloat. Go straight to a quiet terminal.
+    // Forge / Hemisthia–Harken: strip onboarding, launch modals, agent/cloud surfaces.
     if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
         for flag in [
             FeatureFlag::AgentOnboarding,
@@ -530,6 +529,29 @@ fn enabled_features() -> HashSet<FeatureFlag> {
             FeatureFlag::GlobalAIAnalyticsCollection,
             FeatureFlag::WarpifyFooter,
             FeatureFlag::BillingAndUsagePageV2,
+            // Agent product surfaces (sidebar conversations, management, cloud runners).
+            FeatureFlag::AgentView,
+            FeatureFlag::AgentViewBlockContext,
+            FeatureFlag::AgentViewConversationListView,
+            FeatureFlag::AgentViewPromptChip,
+            FeatureFlag::AgentManagementView,
+            FeatureFlag::AgentManagementDetailsView,
+            FeatureFlag::CloudEnvironments,
+            FeatureFlag::CloudRunners,
+            FeatureFlag::CloudAgentRunners,
+            FeatureFlag::AgentMode,
+            FeatureFlag::AgentModeWorkflows,
+            FeatureFlag::AIRules,
+            FeatureFlag::SuggestedRules,
+            FeatureFlag::SuggestedAgentModeWorkflows,
+            FeatureFlag::CreatingSharedSessions,
+            FeatureFlag::ViewingSharedSessions,
+            FeatureFlag::SharedWithMe,
+            FeatureFlag::WarpPacks,
+            FeatureFlag::McpServer,
+            FeatureFlag::OzHandoff,
+            FeatureFlag::HandoffLocalCloud,
+            FeatureFlag::HandoffCloudCloud,
         ] {
             flags.remove(&flag);
         }

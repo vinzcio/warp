@@ -20693,7 +20693,11 @@ impl Workspace {
                         Shrinkable::new(
                             1.,
                             Text::new_inline(
-                                "Search sessions, agents, files...",
+                                if warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK {
+                                    "Search sessions and files..."
+                                } else {
+                                    "Search sessions, agents, files..."
+                                },
                                 appearance.ui_font_family(),
                                 14.,
                             )
@@ -23734,7 +23738,9 @@ impl Workspace {
         if cfg!(feature = "local_fs") && *CodeSettings::as_ref(ctx).show_project_explorer.value() {
             views.push(ToolPanelView::ProjectExplorer);
         }
-        if FeatureFlag::AgentViewConversationListView.is_enabled()
+        // Forge / Hemisthia–Harken: no agent conversation chrome, no Warp Drive cloud product.
+        if !warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK
+            && FeatureFlag::AgentViewConversationListView.is_enabled()
             && *AISettings::as_ref(ctx).show_conversation_history
         {
             views.push(ToolPanelView::ConversationListView);
@@ -23747,7 +23753,9 @@ impl Workspace {
                 entry_focus: GlobalSearchEntryFocus::Results,
             });
         }
-        if *WarpDriveSettings::as_ref(ctx).enable_warp_drive {
+        if !warp_core::privacy_zdr::IS_PRIVACY_ZDR_FORK
+            && *WarpDriveSettings::as_ref(ctx).enable_warp_drive
+        {
             views.push(ToolPanelView::WarpDrive);
         }
         views

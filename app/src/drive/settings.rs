@@ -28,7 +28,8 @@ define_settings_group!(WarpDriveSettings, settings: [
     // Controls whether Warp Drive appears in the tools panel, command palette, and command search.
     enable_warp_drive: EnableWarpDrive {
         type: bool,
-        default: true,
+        // Forge: Warp Drive is a cloud product surface — off in this fork.
+        default: false,
         supported_platforms: SupportedPlatforms::ALL,
         sync_to_cloud: SyncToCloud::Globally(RespectUserSyncSetting::Yes),
         surface: settings::SettingSurfaces::GUI,
