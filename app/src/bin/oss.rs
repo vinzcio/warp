@@ -3,9 +3,8 @@
 #![cfg_attr(feature = "release_bundle", windows_subsystem = "windows")]
 
 use anyhow::Result;
-use warp_core::AppId;
 use warp_core::channel::{Channel, ChannelConfig, ChannelState, OzConfig, WarpServerConfig};
-use warp_core::privacy_zdr;
+use warp_core::{AppId, privacy_zdr};
 
 // Forge: privacy-zdr private terminal (Warp client UX, cloud AI/telemetry removed).
 fn main() -> Result<()> {
